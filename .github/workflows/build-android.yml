@@ -2,83 +2,54 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-
   push:
-    branches:
-      - main
-
-permissions:
-  contents: read
+    branches: [ main ]
 
 jobs:
   build-apk:
-    name: Build APK di test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Scarica il codice
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Installa pnpm
+      - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.33.0
+          version: 10.34.5
 
-      - name: Configura Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Installa le dipendenze
+      - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Configura Java 21
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-          cache: gradle
 
-      - name: Configura Android SDK
+      - name: Set up Android SDK
         uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
 
-      - name: Accetta le licenze Android
-        run: yes | sdkmanager --licenses > /dev/null || true
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Installa Android SDK 36
-        run: |
-          sdkmanager "platform-tools"
-          sdkmanager "platforms;android-36"
-          sdkmanager "build-tools;36.0.0"
-
-      - name: Compila il progetto web e sincronizza Capacitor
-        env:
-          PORT: '5173'
+      - name: Build web app and sync Capacitor
         run: pnpm --filter @workspace/line-translator run android:sync
 
-      - name: Controlla il progetto Android
+      - name: Build debug APK
         working-directory: artifacts/line-translator/android
-        run: |
-          test -f gradlew
-          test -d app
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
 
-      - name: Crea APK debug di test
-        working-directory: artifacts/line-translator/android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
-
-      - name: Controlla che l'APK sia stato creato
-        run: |
-          test -f artifacts/line-translator/android/app/build/outputs/apk/debug/app-debug.apk
-          ls -lh artifacts/line-translator/android/app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Carica APK come artefatto
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: line-translator-apk-test
+          name: line-translator-debug-apk
           path: artifacts/line-translator/android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
