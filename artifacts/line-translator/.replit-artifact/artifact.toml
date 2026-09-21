@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "LINE Translator"
+description = "Un traduttore mobile-first per utenti italiani che vogliono capire i messaggi giapponesi e formulare risposte naturali con la giusta sfumatura."
+version = "1.0.0"
+id = "artifacts/line-translator"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23570
+
+[services.development]
+run = "pnpm --filter @workspace/line-translator run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/line-translator", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/line-translator/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23570"
+BASE_PATH = "/"

@@ -1,0 +1,160 @@
+We now want to extend the existing LINE Translator project from v0.1 to v0.2.
+
+IMPORTANT:
+Do NOT rebuild the project from scratch.
+Do NOT remove or break any existing v0.1 functionality.
+Do NOT add paid AI integrations.
+Do NOT ask for an API key.
+Keep the existing deterministic MOCK AI system.
+
+GOAL OF V0.2:
+Prepare the app so that, on Android, it can receive Japanese text shared from another app such as LINE.
+
+EXPECTED USER FLOW:
+LINE
+→ user long-presses a Japanese message
+→ Share
+→ LINE Translator
+→ LINE Translator opens with the shared Japanese text already inserted into "Messaggio ricevuto"
+→ automatically analyze the received text
+→ show the existing results:
+   - 🇮🇹 Traduzione naturale
+   - 💬 Significato e sfumature
+   - 🎭 Tono e sottintesi
+   - 🇯🇵 Risposta suggerita
+   - 🇮🇹 Traduzione della risposta
+   - 💬 Perché questa risposta
+→ existing "Copia risposta" button remains available.
+
+TECHNICAL REQUIREMENT:
+
+This is currently a React/Vite web app.
+
+First inspect the existing project and determine the safest architecture for adding Android share-target functionality.
+
+If the current project is not already a native Android app, DO NOT pretend that a normal browser/PWA can automatically receive Android Sharesheet text.
+
+Instead, prepare the project for Android integration in a clean and realistic way.
+
+Preferred architecture:
+- keep the existing React/Vite UI and logic
+- create a minimal Android wrapper using Capacitor if appropriate
+- configure Android to accept ACTION_SEND with MIME type text/plain
+- receive Intent.EXTRA_TEXT
+- pass the received text into the existing React application
+- automatically populate the "Messaggio ricevuto" field
+- automatically run the existing mock analysis once the shared text is received.
+
+IMPORTANT:
+Do not implement direct LINE API integration.
+Do not attempt to read LINE private messages.
+Do not use accessibility services.
+Do not use screen scraping.
+Do not use overlays over LINE.
+Do not request unnecessary Android permissions.
+
+ANDROID SHARE INTENT:
+
+The Android application should declare itself as a share target for:
+ACTION_SEND
+type: text/plain
+
+It should receive:
+Intent.EXTRA_TEXT
+
+The received text must be passed safely to the React frontend.
+
+The existing normal manual input flow must continue working exactly as before.
+
+USER EXPERIENCE:
+
+If the app is opened normally:
+- show the existing v0.1 interface
+- user can type/paste Japanese manually
+- everything works as before.
+
+If the app is opened because text was shared from LINE:
+- automatically put the shared Japanese text into "Messaggio ricevuto"
+- automatically start analysis
+- show the existing results.
+
+Add a small visual indication near the input when text came from another app, for example:
+"📲 Testo ricevuto da un'altra app"
+
+Do not make this message prominent.
+
+HANDLE EDGE CASES:
+
+1. No shared text:
+   normal app behavior.
+
+2. Empty shared text:
+   do nothing and keep normal interface.
+
+3. Shared non-Japanese text:
+   still accept it; do not block it.
+
+4. Very long shared text:
+   accept it safely, but avoid crashes.
+
+5. App already open when a new share intent arrives:
+   update the current input with the newly received text and analyze it.
+
+MOCK AI:
+
+Keep the existing deterministic mock analyzer exactly as it is.
+
+Do not replace it with OpenAI, Replit AI Integrations, Google Translate, or another external API.
+
+The existing test cases must continue working:
+
+1.
+今日はちょっと厳しいかな
+
+2.
+また今度ね
+
+3.
+今日は楽しかった！また一緒に行こうね😊
+
+The existing tone selection must continue working.
+
+The Japanese suggested reply must still show:
+🇯🇵 Risposta suggerita
+
+and immediately below:
+🇮🇹 Traduzione della risposta
+
+and:
+💬 Perché questa risposta
+
+SECURITY:
+Do not expose secrets.
+Do not add API keys.
+Do not add unnecessary permissions.
+
+TESTING:
+
+After implementation:
+
+1. Run the existing typecheck.
+2. Run the existing build.
+3. Verify the normal web version still works.
+4. Verify the existing mock test cases.
+5. Verify that Android share intent handling is correctly configured.
+6. If a real Android emulator/device is not available in Replit, do NOT claim that the Android share flow was physically tested.
+Instead clearly report:
+"Android Sharesheet integration configured, but physical Android testing still required."
+
+IMPORTANT OUTPUT:
+At the end, give me a concise report with:
+
+- what files were changed
+- whether Capacitor/native Android was added
+- whether ACTION_SEND/text/plain is configured
+- how the shared text reaches the React app
+- whether automatic analysis is triggered
+- whether the existing v0.1 tests still pass
+- whether a physical Android test is still required
+
+Do not add unrelated features.

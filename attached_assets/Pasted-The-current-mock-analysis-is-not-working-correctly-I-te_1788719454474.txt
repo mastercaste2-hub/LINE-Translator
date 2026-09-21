@@ -1,0 +1,58 @@
+The current mock analysis is not working correctly.
+
+I tested the application with three different Japanese messages, but the app returned essentially the same analysis and suggested reply each time. This is unacceptable because the mock must at least react correctly to different inputs.
+
+Fix the mock analysis engine.
+
+IMPORTANT:
+Do not add any external AI service.
+Do not request an API key.
+Do not upgrade the plan.
+
+Create a deterministic local mock analyzer with these test cases:
+
+CASE 1:
+Input:
+今日はちょっと厳しいかな
+
+Expected meaning:
+Natural Italian translation: "Oggi la vedo un po' difficile, forse."
+Explain that this is a soft/indirect expression of difficulty or possible refusal. The かな ending makes it less definitive and leaves some ambiguity.
+
+CASE 2:
+Input:
+また今度ね
+
+Expected meaning:
+Natural Italian translation: "Un'altra volta, eh." / "Facciamo un'altra volta."
+Explain that the core meaning is postponing something to another occasion. The exact intention depends on context. Do not claim that it is definitely a rejection.
+
+CASE 3:
+Input:
+今日は楽しかった！また一緒に行こうね😊
+
+Expected meaning:
+Natural Italian translation: "Oggi mi sono divertito/a! Andiamo di nuovo insieme 😊"
+Explain that this is clearly positive and expresses enjoyment plus a friendly/affectionate intention to do the activity together again.
+
+The suggested Japanese reply must also change according to the input and selected tone.
+
+For example, for CASE 3 with the "Affettuoso" tone, a suitable reply could be:
+私も楽しかった！また一緒に行こうね😊
+
+For CASE 1 with "Casuale", a suitable reply could be:
+そっか、わかった！無理しないでね😊
+
+For CASE 2 with "Casuale", a suitable reply could be:
+うん、また今度行こう😊
+
+IMPORTANT:
+- Never reuse the previous analysis when the input changes.
+- Never show a translation or explanation belonging to another input.
+- The UI must continue to display the actual Japanese message being analyzed.
+- Keep the current visual design.
+- Keep all user-facing interface text in Italian.
+- Keep the mock analyzer isolated so it can later be replaced by a real AI backend.
+- For unknown Japanese messages, return a clearly labeled generic mock response rather than pretending to understand the exact meaning.
+
+After making the changes, run the app and verify all three test cases.

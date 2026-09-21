@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LINE Translator</string>
+    <string name="title_activity_main">LINE Translator</string>
+    <string name="package_name">it.linetranslator.app</string>
+    <string name="custom_url_scheme">it.linetranslator.app</string>
+</resources>
