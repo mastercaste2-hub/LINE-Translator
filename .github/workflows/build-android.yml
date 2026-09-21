@@ -2,15 +2,21 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+
   push:
-    branches: [ main ]
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
   build-apk:
+    name: Build debug APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install pnpm
@@ -23,33 +29,53 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Set up Java 21
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
-        with:
-          packages: 'platform-tools'
 
-      - name: Install Android SDK 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses > /dev/null || true
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-36"
+          sdkmanager "build-tools;36.0.0"
 
       - name: Build web app and sync Capacitor
         run: pnpm --filter @workspace/line-translator run android:sync
 
+      - name: Verify Android project
+        working-directory: artifacts/line-translator/android
+        run: |
+          test -f gradlew
+          test -d app
+
       - name: Build debug APK
         working-directory: artifacts/line-translator/android
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Verify APK
+        run: |
+          test -f artifacts/line-translator/android/app/build/outputs/apk/debug/app-debug.apk
+          ls -lh artifacts/line-translator/android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: line-translator-debug-apk
           path: artifacts/line-translator/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
