@@ -13,15 +13,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up pnpm and Node.js
-        uses: pnpm/setup@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         with:
-          version: 11
-          runtime: node@22
-          install: false
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
 
       - name: Install Node dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          pnpm config set ignore-scripts false
+          pnpm install --no-frozen-lockfile
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
