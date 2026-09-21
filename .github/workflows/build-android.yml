@@ -54,6 +54,8 @@ jobs:
           sdkmanager "build-tools;36.0.0"
 
       - name: Compila il progetto web e sincronizza Capacitor
+        env:
+          PORT: '5173'
         run: pnpm --filter @workspace/line-translator run android:sync
 
       - name: Controlla il progetto Android
