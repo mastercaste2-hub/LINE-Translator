@@ -42,6 +42,9 @@ jobs:
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
       - name: Build web app and sync Capacitor
+        env:
+          PORT: 5173
+          BASE_PATH: ./
         run: pnpm --filter @workspace/line-translator run android:sync
 
       - name: Build debug APK
