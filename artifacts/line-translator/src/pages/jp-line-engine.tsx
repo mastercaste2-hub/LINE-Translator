@@ -41,7 +41,7 @@ export default function JPLineEngine() {
         <header className="line-animate space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1.5 text-xs font-medium text-muted-foreground">
             <Brain className="size-4 text-primary" aria-hidden="true" />
-            <span>Motore linguistico giapponese proprietario · V0.2</span>
+            <span>Motore linguistico giapponese proprietario · V0.3</span>
           </div>
           <h1 className="font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
             🧠 JP LINE Engine
@@ -85,43 +85,61 @@ export default function JPLineEngine() {
               ) : (
                 <div className="space-y-6">
                   <div>
-                    <h2 id="analysis-heading" className="font-serif text-2xl font-semibold">Risultato locale V0.2</h2>
+                    <h2 id="analysis-heading" className="font-serif text-2xl font-semibold">Risultato locale V0.3</h2>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       Ogni risultato deriva da lessico, regole grammaticali o strutture esplicite del motore.
                     </p>
                   </div>
 
-                  <ResultBlock title="Token e morfologia">
-                    <div className="flex flex-wrap gap-2">
+                  <ResultBlock title="INPUT"><p className="line-japanese text-base">{analysis.source}</p></ResultBlock>
+
+                  <ResultBlock title="TOKEN ANALYSIS">
+                    <ul className="space-y-2">
                       {analysis.tokens.filter((token) => token.type !== 'whitespace').map((token, index) => (
-                        <span key={`${index}-${token.text}`} className={`max-w-full rounded-lg border px-3 py-2 text-sm ${token.type === 'unknown' ? 'border-destructive/50 bg-destructive/5' : 'border-border bg-background/70'}`}>
-                          <span className="line-japanese font-semibold">{token.text}</span>
-                          <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {token.type} · {token.characterClass ?? '—'} · {token.partOfSpeech}
-                          </span>
-                          {token.meaning && <span className="mt-1 block text-xs text-muted-foreground">{token.meaning}</span>}
-                          {token.sentenceFunction && <span className="mt-1 block text-xs text-muted-foreground">Funzione: {token.sentenceFunction}</span>}
-                          {token.grammarRule && <span className="mt-1 block text-xs text-primary">Regola: {token.grammarRule}</span>}
-                          {token.morphology && (
-                            <span className="mt-2 block border-t border-border/70 pt-2 text-xs text-primary">
-                              {token.morphology.formLabel} · lemma {token.morphology.lemma} · {token.morphology.explanation}
-                            </span>
-                          )}
-                        </span>
+                        <li key={`${index}-${token.text}`} className={`grid grid-cols-2 gap-x-3 gap-y-2 rounded-xl border p-3 text-xs sm:grid-cols-[.8fr_1fr_1fr_1.4fr_1fr] ${token.type === 'unknown' ? 'border-destructive/50 bg-destructive/5' : 'border-border bg-background/60'}`}>
+                          <span><span className="block text-[9px] uppercase tracking-wide text-muted-foreground">Surface</span><strong className="line-japanese text-sm">{token.text}</strong></span>
+                          <span><span className="block text-[9px] uppercase tracking-wide text-muted-foreground">Lemma</span><span className="line-japanese">{token.lemma ?? (token.type === 'unknown' ? 'unknown' : '—')}</span></span>
+                          <span><span className="block text-[9px] uppercase tracking-wide text-muted-foreground">POS / morph</span>{token.partOfSpeech}{token.morphology ? ' · ' + token.morphology.form : ''}</span>
+                          <span><span className="block text-[9px] uppercase tracking-wide text-muted-foreground">Meaning</span>{token.meaning ?? (token.type === 'unknown' ? 'unknown' : '—')}</span>
+                          <span><span className="block text-[9px] uppercase tracking-wide text-muted-foreground">Role / confidence</span>{token.grammaticalRoles?.join(', ') || '—'}{token.confidence !== undefined ? ' · ' + Math.round(token.confidence * 100) + '%' : ''}</span>
+                          {token.grammarRule && <span className="col-span-2 text-primary sm:col-span-5">Rule: {token.grammarRule}{token.morphology ? ' · ' + token.morphology.explanation : ''}</span>}
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </ResultBlock>
 
-                  <ResultBlock title="Struttura">
-                    {analysis.structure.length
-                      ? <ul className="list-inside list-disc space-y-1">{analysis.structure.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul>
-                      : <p>Nessuna struttura specifica riconosciuta.</p>}
+                  <ResultBlock title="GRAMMAR STRUCTURE">
+                    <p className="mb-3 rounded-lg bg-muted/60 px-3 py-2 text-xs">
+                      Subject: {analysis.sentenceStructure.subject.status === 'omitted/implicit'
+                        ? 'omitted / implicit (non recuperabile dalla frase isolata)'
+                        : analysis.sentenceStructure.subject.tokenIndexes.map((index) => analysis.tokens[index].text).join(', ')}
+                    </p>
+                    {analysis.relationships.length
+                      ? <ul className="space-y-2">{analysis.relationships.map((item, index) => <li key={index} className="rounded-lg border border-border/70 px-3 py-2 text-xs">
+                          <span className="line-japanese font-semibold">{analysis.tokens[item.fromToken].text}</span>
+                          <span className="mx-2 text-primary">→ {item.relation}{item.particleToken !== undefined ? ' (' + analysis.tokens[item.particleToken].text + ')' : ''} →</span>
+                          <span className="line-japanese font-semibold">{analysis.tokens[item.toToken].text}</span>
+                          <span className="ml-2 text-muted-foreground">{Math.round(item.confidence * 100)}%</span>
+                        </li>)}</ul>
+                      : <p>Nessuna relazione grammaticale è stata risolta con le regole locali.</p>}
+                    {analysis.phrases.length > 0 && <p className="mt-3 text-xs">Chunks: {analysis.phrases.map((phrase) => phrase.type + ' [' + phrase.tokenIndexes.map((index) => analysis.tokens[index].text).join(' ') + '] · ' + phrase.role).join(' · ')}</p>}
                   </ResultBlock>
 
-                  <ResultBlock title="Significato letterale"><p>{analysis.literalMeaning}</p></ResultBlock>
-                  <ResultBlock title="Interpretazione naturale"><p>{analysis.naturalMeaning}</p></ResultBlock>
+                  <ResultBlock title="PARTICLE ANALYSIS">
+                    {analysis.particleAnalysis.length
+                      ? <ul className="space-y-2">{analysis.particleAnalysis.map((item, index) => <li key={index} className="rounded-lg border border-border/70 px-3 py-2 text-xs">
+                          <strong className="line-japanese text-sm">{item.surface}</strong>
+                          <span className="mx-2 text-primary">{item.selectedFunction ?? 'ambiguous'}</span>
+                          <span className="text-muted-foreground">candidates: {item.candidateFunctions.join(' / ') || '—'}{item.appliedFunctions?.length ? ' · applied: ' + item.appliedFunctions.join(' + ') : ''} · {Math.round(item.confidence * 100)}%</span>
+                          <p className="mt-1 text-muted-foreground">{item.explanation}</p>
+                        </li>)}</ul>
+                      : <p>Nessuna particella riconosciuta.</p>}
+                  </ResultBlock>
 
-                  <ResultBlock title="Tono">
+                  <ResultBlock title="LITERAL MEANING"><p>{analysis.literalMeaning}</p></ResultBlock>
+                  <ResultBlock title="NATURAL INTERPRETATION"><p>{analysis.naturalMeaning}</p></ResultBlock>
+
+                  <ResultBlock title="TONE">
                     <div className="flex flex-wrap gap-2">
                       {analysis.tone.length
                         ? analysis.tone.map((tone) => <span key={tone} className="rounded-full bg-muted px-3 py-1 text-xs font-medium">{tone}</span>)
@@ -134,7 +152,7 @@ export default function JPLineEngine() {
 
                   <ResultBlock title="Sottotesto"><p>{analysis.subtext}</p></ResultBlock>
 
-                  <ResultBlock title="Confidence">
+                  <ResultBlock title="CONFIDENCE">
                     <div className="flex items-center gap-3">
                       <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                         <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(analysis.confidence * 100)}%` }} />

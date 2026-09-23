@@ -3,6 +3,7 @@ export type PartOfSpeech =
   | 'adverb'
   | 'i-adjective'
   | 'adjective'
+  | 'na-adjective'
   | 'verb'
   | 'expression'
   | 'conjunction'
@@ -50,13 +51,108 @@ export type VerbForm =
   | 'mashita'
   | 'nai'
   | 'nakatta'
-  | 'volitional';
+  | 'volitional'
+  | 'te-iru'
+  | 'taku-nai'
+  | 'masen-deshita';
+
+export type ParticleFunction =
+  | 'topic'
+  | 'subject-focus'
+  | 'subject'
+  | 'focus'
+  | 'direct-object'
+  | 'destination-target'
+  | 'time-target'
+  | 'direction'
+  | 'action-location'
+  | 'means'
+  | 'companion'
+  | 'quotation'
+  | 'addition'
+  | 'possessive'
+  | 'source-reason'
+  | 'limit'
+  | 'comparison-source'
+  | 'non-exhaustive-list'
+  | 'confirmation-seeking'
+  | 'emphasis'
+  | 'uncertainty'
+  | 'question'
+  | 'copula';
+
+export type GrammaticalRole =
+  | 'topic'
+  | 'subject'
+  | 'object'
+  | 'indirect-object'
+  | 'destination'
+  | 'location'
+  | 'companion'
+  | 'possessor'
+  | 'nominal-head'
+  | 'predicate'
+  | 'modifier'
+  | 'temporal-adjunct'
+  | 'question-focus'
+  | 'unknown';
+
+export type SemanticCategory = 'temporal' | 'person' | 'place' | 'activity' | 'state' | 'question' | 'other';
+
+export type GrammarRelationKind =
+  | 'topic-of'
+  | 'subject-of'
+  | 'object-of'
+  | 'indirect-object-of'
+  | 'destination-of'
+  | 'location-of'
+  | 'companion-of'
+  | 'possesses'
+  | 'modifies'
+  | 'temporal-context-of'
+  | 'predicate-of';
+
+export type ParticleAnalysis = {
+  tokenIndex: number;
+  surface: string;
+  candidateFunctions: ParticleFunction[];
+  selectedFunction?: ParticleFunction;
+  appliedFunctions?: ParticleFunction[];
+  ambiguity: boolean;
+  confidence: number;
+  explanation: string;
+};
+
+export type GrammarRelation = {
+  fromToken: number;
+  toToken: number;
+  relation: GrammarRelationKind;
+  particleToken?: number;
+  confidence: number;
+  evidence: string;
+};
+
+export type PhraseAnalysis = {
+  type: 'noun-phrase' | 'temporal-phrase' | 'predicate-phrase' | 'question-phrase';
+  tokenIndexes: number[];
+  role: GrammaticalRole;
+  confidence: number;
+};
+
+export type SentenceStructure = {
+  predicateTokenIndexes: number[];
+  subject: { status: 'explicit'; tokenIndexes: number[] } | { status: 'omitted/implicit' };
+  phrases: PhraseAnalysis[];
+  relationships: GrammarRelation[];
+};
 
 export type DictionaryEntry = {
   id: string;
   surface: string;
   partOfSpeech: PartOfSpeech;
   characterClass?: CharacterClass;
+  semanticCategory?: SemanticCategory;
+  particleFunctions?: ParticleFunction[];
   meaning: string;
   sentenceFunction: string;
   verbClass?: VerbClass;
@@ -68,6 +164,11 @@ export type EngineToken = {
   type: TokenType;
   partOfSpeech: PartOfSpeech;
   characterClass?: CharacterClass;
+  lemma?: string;
+  semanticCategory?: SemanticCategory;
+  grammaticalRoles?: GrammaticalRole[];
+  particleFunctions?: ParticleFunction[];
+  confidence?: number;
   meaning?: string;
   sentenceFunction?: string;
   grammarRule?: string;
@@ -119,6 +220,10 @@ export type JapaneseAnalysis = {
   tokens: EngineToken[];
   structure: string[];
   grammar: GrammarMatch[];
+  particleAnalysis: ParticleAnalysis[];
+  relationships: GrammarRelation[];
+  phrases: PhraseAnalysis[];
+  sentenceStructure: SentenceStructure;
   morphology: VerbMorphology[];
   expressions: LineExpressionMatch[];
   literalMeaning: string;

@@ -92,24 +92,38 @@ export function tokenizeJapanese(source: string): EngineToken[] {
 
     const entryMatch = entryAt(source, index, orderedEntries);
     const particleMatch = entryAt(source, index, orderedParticles);
-    const match = entryMatch && (!particleMatch || entryMatch.surface.length >= particleMatch.surface.length)
+    let match = entryMatch && (!particleMatch || entryMatch.surface.length >= particleMatch.surface.length)
       ? entryMatch
       : particleMatch;
+    if (match?.entry.id === 'na-attributive-linker') {
+      const previous = [...tokens].reverse().find((token) => token.type !== 'whitespace' && token.type !== 'punctuation');
+      if (previous?.partOfSpeech !== 'na-adjective') match = undefined;
+    }
 
     if (match) {
       const isParticle = match.entry.partOfSpeech === 'particle';
+      const isAttributiveLinker = match.entry.id === 'na-attributive-linker';
+      const verbMorphology = match.entry.partOfSpeech === 'verb'
+        ? findVerbMorphology(match.surface, allLexicalEntries)
+        : undefined;
       const associatedGrammar = match.grammarRuleId
         ? grammar.find((item) => item.id === match.grammarRuleId && item.start < index + match.surface.length && item.end > index)
         : undefined;
       tokens.push({
         text: match.surface,
-        type: isParticle ? 'particle' : match.grammarRuleId ? 'grammar' : 'word',
+        type: isParticle ? 'particle' : verbMorphology ? 'morphology' : isAttributiveLinker || match.grammarRuleId ? 'grammar' : 'word',
         partOfSpeech: match.entry.partOfSpeech,
         characterClass: characterClassOf(match.surface),
+        lemma: verbMorphology?.lemma ?? match.entry.surface,
+        semanticCategory: match.entry.semanticCategory,
+        grammaticalRoles: [],
+        particleFunctions: match.entry.particleFunctions,
+        confidence: isParticle ? 0.84 : verbMorphology ? 0.88 : 0.9,
         meaning: match.entry.meaning,
         sentenceFunction: match.entry.sentenceFunction,
-        grammarRule: associatedGrammar?.label ?? (match.grammarRuleId ? match.grammarRuleId : undefined),
+        grammarRule: associatedGrammar?.label ?? (isAttributiveLinker ? 'collegamento attributivo な' : match.grammarRuleId ? match.grammarRuleId : undefined),
         dictionaryId: match.entry.id,
+        morphology: verbMorphology,
       });
       index += match.surface.length;
       continue;
@@ -124,12 +138,16 @@ export function tokenizeJapanese(source: string): EngineToken[] {
 
     const morphology = morphologyAt(source, index);
     if (morphology) {
-      const entry = dictionaryEntries.find((item) => item.surface === morphology.lemma);
+      const entry = allLexicalEntries.find((item) => item.surface === morphology.lemma);
       tokens.push({
         text: morphology.surface,
         type: 'morphology',
         partOfSpeech: 'verb',
         characterClass: characterClassOf(morphology.surface),
+        lemma: morphology.lemma,
+        semanticCategory: entry?.semanticCategory,
+        grammaticalRoles: [],
+        confidence: 0.9,
         meaning: morphology.lemmaMeaning,
         sentenceFunction: entry?.sentenceFunction ?? 'azione',
         grammarRule: morphology.formLabel,
@@ -148,7 +166,8 @@ export function tokenizeJapanese(source: string): EngineToken[] {
       type: 'unknown',
       partOfSpeech: pos,
       characterClass: characterClassOf(run.text),
-      sentenceFunction: 'elemento conservato; non presente nei dati lessicali della V0.2',
+      confidence: 0.05,
+      sentenceFunction: 'elemento conservato; non presente nei dati lessicali della V0.3',
       grammarRule: overlappingGrammar?.label,
     });
     index = run.end;

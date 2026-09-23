@@ -1,13 +1,14 @@
-import type { DictionaryEntry, PartOfSpeech, VerbClass } from '../types';
+import type { DictionaryEntry, PartOfSpeech, SemanticCategory, VerbClass } from '../types';
 
-type VocabSpec = [id: string, surface: string, pos: PartOfSpeech, meaning: string, functionText: string, verbClass?: VerbClass];
+type VocabSpec = [id: string, surface: string, pos: PartOfSpeech, meaning: string, functionText: string, verbClass?: VerbClass, semanticCategory?: SemanticCategory];
 
-const v = ([id, surface, pos, meaning, functionText, verbClass]: VocabSpec): DictionaryEntry => ({
+const v = ([id, surface, pos, meaning, functionText, verbClass, semanticCategory]: VocabSpec): DictionaryEntry => ({
   id,
   surface,
   partOfSpeech: pos,
   meaning,
   sentenceFunction: functionText,
+  ...(semanticCategory ? { semanticCategory } : {}),
   ...(verbClass ? { verbClass } : {}),
 });
 
@@ -44,10 +45,10 @@ const specs: VocabSpec[] = [
   ['nobody', '誰も', 'noun', 'nessuno', 'referente umano con negazione'],
   ['name', '名前', 'noun', 'nome', 'identificazione'],
   ['life', '生活', 'noun', 'vita quotidiana; stile di vita', 'situazione quotidiana'],
-  ['work', '仕事', 'noun', 'lavoro', 'attività o occupazione'],
+  ['work', '仕事', 'noun', 'lavoro', 'attività o occupazione', undefined, 'activity'],
   ['company', '会社', 'noun', 'azienda; società', 'luogo o organizzazione'],
   ['office', '会社員', 'noun', 'impiegato; lavoratore aziendale', 'ruolo professionale'],
-  ['school', '学校', 'noun', 'scuola', 'luogo di studio'],
+  ['school', '学校', 'noun', 'scuola', 'luogo di studio', undefined, 'place'],
   ['student', '学生', 'noun', 'studente', 'ruolo di studio'],
   ['teacher', '先生', 'noun', 'insegnante; maestro', 'ruolo professionale'],
   ['doctor', '医者', 'noun', 'medico', 'ruolo professionale'],
@@ -218,7 +219,8 @@ const specs: VocabSpec[] = [
   ['rest', '休む', 'verb', 'riposarsi; assentarsi', 'stato o attività', 'godan'],
   ['play-verb', '遊ぶ', 'verb', 'giocare; divertirsi', 'attività ricreativa', 'godan'],
   ['enjoy', '楽しむ', 'verb', 'godere; divertirsi', 'esperienza positiva', 'godan'],
-  ['like', '好き', 'adjective', 'piacere; essere gradito', 'preferenza'],
+  ['like', '好き', 'na-adjective', 'piacere; essere gradito', 'preferenza'],
+  ['dislike-adj', '嫌い', 'na-adjective', 'non piacere; detestare', 'preferenza negativa'],
   ['love', '愛する', 'verb', 'amare', 'relazione emotiva', 'suru'],
   ['hate', '嫌う', 'verb', 'odiare; non sopportare', 'valutazione emotiva', 'godan'],
   ['laugh', '笑う', 'verb', 'ridere', 'reazione emotiva', 'godan'],
@@ -284,7 +286,7 @@ const specs: VocabSpec[] = [
   ['low', '低い', 'i-adjective', 'basso', 'dimensione o livello'],
   ['cheap', '安い', 'i-adjective', 'economico', 'prezzo'],
   ['expensive', '高価', 'adjective', 'costoso', 'prezzo'],
-  ['easy', '簡単', 'adjective', 'facile; semplice', 'valutazione'],
+  ['easy', '簡単', 'na-adjective', 'facile; semplice', 'valutazione'],
   ['difficult-adj', '難しい', 'i-adjective', 'difficile', 'valutazione'],
   ['busy', '忙しい', 'i-adjective', 'impegnato; occupato', 'stato personale'],
   ['free', '暇', 'adjective', 'libero; senza impegni', 'stato personale'],
@@ -349,10 +351,10 @@ const specs: VocabSpec[] = [
   ['still', 'まだ', 'adverb', 'ancora; non ancora', 'tempo o stato'],
   ['soon', 'すぐ', 'adverb', 'subito; presto', 'tempo'],
   ['later', '後で', 'adverb', 'più tardi; dopo', 'tempo'],
-  ['today-adv', '今日', 'noun', 'oggi', 'tempo'],
-  ['tomorrow-adv', '明日', 'noun', 'domani', 'tempo'],
+  ['today-adv', '今日', 'noun', 'oggi', 'tempo', undefined, 'temporal'],
+  ['tomorrow-adv', '明日', 'noun', 'domani', 'tempo', undefined, 'temporal'],
   ['yesterday-adv', '昨日', 'noun', 'ieri', 'tempo'],
-  ['now-adv', '今', 'noun', 'adesso; ora', 'tempo'],
+  ['now-adv', '今', 'noun', 'adesso; ora', 'tempo', undefined, 'temporal'],
   ['then', 'その時', 'noun', 'in quel momento', 'tempo'],
   ['soon-adv', 'もうすぐ', 'adverb', 'tra poco', 'tempo'],
   ['together-adv', '一緒に', 'adverb', 'insieme', 'modo'],
@@ -373,7 +375,7 @@ const specs: VocabSpec[] = [
   // Questions / demonstratives
   ['what', '何', 'noun', 'che cosa; cosa', 'interrogativo'],
   ['who', '誰', 'noun', 'chi', 'interrogativo'],
-  ['where', 'どこ', 'noun', 'dove', 'interrogativo'],
+  ['where', 'どこ', 'noun', 'dove', 'interrogativo', undefined, 'question'],
   ['when', 'いつ', 'noun', 'quando', 'interrogativo'],
   ['why', 'なぜ', 'adverb', 'perché', 'interrogativo'],
   ['why-casual', 'どうして', 'adverb', 'perché; come mai', 'interrogativo'],

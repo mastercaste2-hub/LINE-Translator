@@ -2,7 +2,10 @@ import type { DictionaryEntry } from '../types';
 import { commonVocabularyEntries } from './common-vocabulary';
 
 export const dictionaryEntries: DictionaryEntry[] = [
-  { id: 'today', surface: '今日', partOfSpeech: 'noun', meaning: 'oggi', sentenceFunction: 'riferimento temporale' },
+  { id: 'today', surface: '今日', partOfSpeech: 'noun', semanticCategory: 'temporal', meaning: 'oggi', sentenceFunction: 'riferimento temporale' },
+  { id: 'self-first-person', surface: '私', partOfSpeech: 'noun', semanticCategory: 'person', meaning: 'io; me', sentenceFunction: 'referente personale esplicito' },
+  { id: 'tokyo', surface: '東京', partOfSpeech: 'noun', semanticCategory: 'place', meaning: 'Tokyo', sentenceFunction: 'luogo geografico' },
+  { id: 'really-adverb', surface: '本当に', partOfSpeech: 'adverb', meaning: 'davvero; veramente', sentenceFunction: 'modifica il grado o la sincerità dell’enunciato' },
   { id: 'little', surface: 'ちょっと', partOfSpeech: 'adverb', meaning: 'un po’; per un momento', sentenceFunction: 'attenua ciò che segue o indica una breve durata' },
   { id: 'difficult', surface: '厳しい', partOfSpeech: 'i-adjective', meaning: 'difficile; severo', sentenceFunction: 'descrive una condizione' },
   { id: 'again', surface: 'また', partOfSpeech: 'adverb', meaning: 'di nuovo; un’altra volta', sentenceFunction: 'modifica l’azione o il riferimento temporale' },
@@ -30,14 +33,14 @@ export const dictionaryEntries: DictionaryEntry[] = [
   { id: 'come', surface: '来る', partOfSpeech: 'verb', meaning: 'venire', sentenceFunction: 'azione di movimento', verbClass: 'kuru' },
   { id: 'think', surface: '思う', partOfSpeech: 'verb', meaning: 'pensare', sentenceFunction: 'esprime un’opinione o un pensiero', verbClass: 'godan' },
   { id: 'know', surface: '知る', partOfSpeech: 'verb', meaning: 'sapere; conoscere', sentenceFunction: 'stato di conoscenza', verbClass: 'godan' },
-  { id: 'friend', surface: '友達', partOfSpeech: 'noun', meaning: 'amico; amica', sentenceFunction: 'referente sociale' },
+  { id: 'friend', surface: '友達', partOfSpeech: 'noun', semanticCategory: 'person', meaning: 'amico; amica', sentenceFunction: 'referente sociale' },
   { id: 'person', surface: '人', partOfSpeech: 'noun', meaning: 'persona', sentenceFunction: 'referente umano' },
-  { id: 'tomorrow', surface: '明日', partOfSpeech: 'noun', meaning: 'domani', sentenceFunction: 'riferimento temporale' },
+  { id: 'tomorrow', surface: '明日', partOfSpeech: 'noun', semanticCategory: 'temporal', meaning: 'domani', sentenceFunction: 'riferimento temporale' },
   { id: 'yesterday', surface: '昨日', partOfSpeech: 'noun', meaning: 'ieri', sentenceFunction: 'riferimento temporale' },
-  { id: 'now', surface: '今', partOfSpeech: 'noun', meaning: 'adesso', sentenceFunction: 'riferimento temporale' },
+  { id: 'now', surface: '今', partOfSpeech: 'noun', semanticCategory: 'temporal', meaning: 'adesso', sentenceFunction: 'riferimento temporale' },
   { id: 'thanks', surface: 'ありがとう', partOfSpeech: 'expression', meaning: 'grazie', sentenceFunction: 'esprime gratitudine' },
   { id: 'sorry', surface: 'ごめん', partOfSpeech: 'expression', meaning: 'scusa', sentenceFunction: 'scuse informali' },
-  { id: 'okay', surface: '大丈夫', partOfSpeech: 'adjective', meaning: 'va bene; tutto a posto', sentenceFunction: 'valuta una condizione o rassicura' },
+  { id: 'okay', surface: '大丈夫', partOfSpeech: 'na-adjective', semanticCategory: 'state', meaning: 'va bene; tutto a posto', sentenceFunction: 'valuta una condizione o rassicura' },
   { id: 'well', surface: 'そっか', partOfSpeech: 'expression', meaning: 'ah, capisco', sentenceFunction: 'segnala ricezione di un’informazione' },
   { id: 'really', surface: 'そうなんだ', partOfSpeech: 'expression', meaning: 'è così; davvero', sentenceFunction: 'reazione informale a un’informazione' },
   { id: 'understood', surface: 'わかった', partOfSpeech: 'verb', meaning: 'ho capito', sentenceFunction: 'indica comprensione', verbClass: 'godan', variants: [{ surface: 'わかった', grammarRuleId: 'past' }] },
@@ -45,20 +48,31 @@ export const dictionaryEntries: DictionaryEntry[] = [
 ];
 
 export const particleEntries: DictionaryEntry[] = [
-  { id: 'particle-wa', surface: 'は', partOfSpeech: 'particle', meaning: 'tema della frase', sentenceFunction: 'introduce il tema' },
-  { id: 'particle-ga', surface: 'が', partOfSpeech: 'particle', meaning: 'soggetto o focus', sentenceFunction: 'marca soggetto o informazione focalizzata' },
-  { id: 'particle-o', surface: 'を', partOfSpeech: 'particle', meaning: 'oggetto diretto', sentenceFunction: 'marca l’oggetto dell’azione' },
-  { id: 'particle-ni', surface: 'に', partOfSpeech: 'particle', meaning: 'destinazione, tempo o bersaglio', sentenceFunction: 'marca una relazione richiesta dal contesto' },
-  { id: 'particle-e', surface: 'へ', partOfSpeech: 'particle', meaning: 'verso', sentenceFunction: 'marca una direzione' },
-  { id: 'particle-de', surface: 'で', partOfSpeech: 'particle', meaning: 'luogo o mezzo', sentenceFunction: 'marca luogo dell’azione o mezzo' },
-  { id: 'particle-to', surface: 'と', partOfSpeech: 'particle', meaning: 'con; citazione', sentenceFunction: 'marca compagnia o contenuto citato' },
-  { id: 'particle-mo', surface: 'も', partOfSpeech: 'particle', meaning: 'anche', sentenceFunction: 'aggiunge un elemento' },
-  { id: 'particle-no', surface: 'の', partOfSpeech: 'particle', meaning: 'relazione o possesso', sentenceFunction: 'collega nomi o nominalizza' },
-  { id: 'particle-kara', surface: 'から', partOfSpeech: 'particle', meaning: 'da; perché', sentenceFunction: 'marca origine o motivo' },
-  { id: 'particle-made', surface: 'まで', partOfSpeech: 'particle', meaning: 'fino a', sentenceFunction: 'marca un limite' },
-  { id: 'particle-kana', surface: 'かな', partOfSpeech: 'particle', meaning: 'chissà; forse', sentenceFunction: 'chiusura riflessiva o esitante' },
-  { id: 'particle-ne', surface: 'ね', partOfSpeech: 'particle', meaning: 'vero?; eh', sentenceFunction: 'cerca o condivide un accordo' },
-  { id: 'particle-yo', surface: 'よ', partOfSpeech: 'particle', meaning: 'enfasi informativa', sentenceFunction: 'presenta l’informazione come nuova o assertiva' },
+  { id: 'particle-wa', surface: 'は', partOfSpeech: 'particle', particleFunctions: ['topic'], meaning: 'marcatore di tema', sentenceFunction: 'introduce il tema; non identifica sempre il soggetto grammaticale' },
+  { id: 'particle-ga', surface: 'が', partOfSpeech: 'particle', particleFunctions: ['subject', 'focus'], meaning: 'marcatore di soggetto o focus', sentenceFunction: 'marca soggetto o informazione focalizzata; la distinzione dipende dal contesto' },
+  { id: 'particle-o', surface: 'を', partOfSpeech: 'particle', particleFunctions: ['direct-object'], meaning: 'marcatore di oggetto diretto', sentenceFunction: 'marca l’oggetto dell’azione' },
+  { id: 'particle-ni', surface: 'に', partOfSpeech: 'particle', particleFunctions: ['destination-target', 'time-target'], meaning: 'marcatore di destinazione, tempo o bersaglio', sentenceFunction: 'funzione scelta tra meta/destinatario e tempo in base al predicato' },
+  { id: 'particle-e', surface: 'へ', partOfSpeech: 'particle', particleFunctions: ['direction'], meaning: 'marcatore direzionale', sentenceFunction: 'marca la direzione verso cui si svolge il movimento' },
+  { id: 'particle-de', surface: 'で', partOfSpeech: 'particle', particleFunctions: ['action-location', 'means'], meaning: 'marcatore di luogo o mezzo', sentenceFunction: 'marca il luogo dell’azione o lo strumento; resta ambiguo senza contesto' },
+  { id: 'particle-to', surface: 'と', partOfSpeech: 'particle', particleFunctions: ['companion', 'quotation'], meaning: 'marcatore di compagnia o citazione', sentenceFunction: 'funzione scelta in base al predicato e alla struttura locale' },
+  { id: 'particle-mo', surface: 'も', partOfSpeech: 'particle', particleFunctions: ['addition', 'subject-focus'], meaning: 'marcatore additivo', sentenceFunction: 'aggiunge o mette a fuoco un elemento' },
+  { id: 'particle-no', surface: 'の', partOfSpeech: 'particle', particleFunctions: ['possessive'], meaning: 'marcatore di relazione nominale', sentenceFunction: 'collega un possessore a un nome seguente o nominalizza' },
+  { id: 'particle-kara', surface: 'から', partOfSpeech: 'particle', particleFunctions: ['source-reason'], meaning: 'marcatore di origine o causa', sentenceFunction: 'può indicare provenienza o motivo' },
+  { id: 'particle-made', surface: 'まで', partOfSpeech: 'particle', particleFunctions: ['limit'], meaning: 'marcatore di limite', sentenceFunction: 'indica il punto finale di un intervallo' },
+  { id: 'particle-yori', surface: 'より', partOfSpeech: 'particle', particleFunctions: ['comparison-source', 'source-reason'], meaning: 'marcatore di confronto o origine', sentenceFunction: 'funzione dipendente dal costrutto' },
+  { id: 'particle-ya', surface: 'や', partOfSpeech: 'particle', particleFunctions: ['non-exhaustive-list'], meaning: 'marcatore di elenco non esaustivo', sentenceFunction: 'collega esempi senza indicare un elenco completo' },
+  { id: 'particle-kana', surface: 'かなあ', partOfSpeech: 'particle', particleFunctions: ['uncertainty'], meaning: 'chi sa; forse', sentenceFunction: 'chiusura riflessiva ed esitante' },
+  { id: 'particle-kana-short', surface: 'かな', partOfSpeech: 'particle', particleFunctions: ['uncertainty'], meaning: 'chi sa; forse', sentenceFunction: 'chiusura riflessiva ed esitante' },
+  { id: 'particle-yorone', surface: 'よね', partOfSpeech: 'particle', particleFunctions: ['emphasis', 'confirmation-seeking'], meaning: 'enfasi con ricerca di accordo', sentenceFunction: 'combina presentazione assertiva e richiesta di conferma' },
+  { id: 'particle-dane', surface: 'だね', partOfSpeech: 'particle', particleFunctions: ['copula', 'confirmation-seeking'], meaning: 'copula con ricerca di accordo', sentenceFunction: 'chiusura valutativa che cerca o condivide accordo' },
+  { id: 'particle-ne', surface: 'ね', partOfSpeech: 'particle', particleFunctions: ['confirmation-seeking'], meaning: 'vero?; eh', sentenceFunction: 'cerca o condivide un accordo' },
+  { id: 'particle-yo', surface: 'よ', partOfSpeech: 'particle', particleFunctions: ['emphasis'], meaning: 'enfasi informativa', sentenceFunction: 'presenta l’informazione come nuova o assertiva' },
+  { id: 'particle-ka', surface: 'か', partOfSpeech: 'particle', particleFunctions: ['question'], meaning: 'marcatore interrogativo o alternativo', sentenceFunction: 'marca una domanda o una scelta; funzione dipendente dalla posizione' },
+];
+
+export const copulaEntries: DictionaryEntry[] = [
+  { id: 'copula-da', surface: 'だ', partOfSpeech: 'auxiliary', particleFunctions: ['copula'], meaning: 'copula informale', sentenceFunction: 'collega un predicato nominale o aggettivale' },
+  { id: 'na-attributive-linker', surface: 'な', partOfSpeech: 'auxiliary', meaning: 'collegamento attributivo', sentenceFunction: 'collega un na-aggettivo a un nome' },
 ];
 
 export const grammarSuffixEntries: DictionaryEntry[] = [
@@ -70,4 +84,4 @@ export const grammarSuffixEntries: DictionaryEntry[] = [
   { id: 'suffix-tara', surface: 'た', partOfSpeech: 'auxiliary', meaning: 'passato', sentenceFunction: 'marca una forma passata', variants: [{ surface: 'た', grammarRuleId: 'past' }] },
 ];
 
-export const allLexicalEntries = [...dictionaryEntries, ...commonVocabularyEntries, ...particleEntries, ...grammarSuffixEntries];
+export const allLexicalEntries = [...dictionaryEntries, ...commonVocabularyEntries, ...particleEntries, ...copulaEntries, ...grammarSuffixEntries];

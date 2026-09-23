@@ -10,6 +10,7 @@ type GrammarPattern = {
 const patterns: GrammarPattern[] = [
   { id: 'past-i-adjective', label: 'Aggettivo in forma passata', expression: /[一-龯々ぁ-ゖァ-ヺー]+かった/gu, explanation: 'Forma passata di un aggettivo in -い; il lemma specifico dipende dal lessico riconosciuto.' },
   { id: 'negative-past', label: 'Negazione al passato', expression: /なかった/gu, explanation: 'Forma negativa al passato.' },
+  { id: 'negative-desiderative', label: 'Desiderativo negativo 〜たくない', expression: /たくない/gu, explanation: 'Forma negativa del desiderativo; la base verbale è identificata dalla morfologia lessicale.' },
   { id: 'te-iru', label: 'ている', expression: /ている/gu, explanation: 'Può indicare un’azione in corso o uno stato risultante.' },
   { id: 'opinion-to-omou', label: 'と思う', expression: /と思う/gu, explanation: 'Presenta il contenuto precedente come pensiero o opinione.' },
   { id: 'desiderative', label: '〜たい', expression: /たい(?=[ねよかな！!。？?、]|$)/gu, explanation: 'Suffisso desiderativo dopo una base verbale.' },
@@ -22,7 +23,12 @@ const patterns: GrammarPattern[] = [
   { id: 'yo', label: 'Particella finale 〜よ', expression: /よ(?=[！!。？?、]|$)/gu, explanation: 'Chiusura assertiva o informativa.' },
   { id: 'polite-desu', label: 'Forma cortese です', expression: /です(?=[ねよ！!。？?]|$)/gu, explanation: 'Copula in forma cortese.' },
   { id: 'polite-masu', label: 'Forma cortese ます', expression: /(?:ます|ました|ません)(?=[ねよ！!。？?]|$)/gu, explanation: 'Predicato in forma cortese.' },
+  { id: 'polite-negative-past', label: 'Negazione cortese al passato', expression: /ませんでした(?=[ねよ！!。？?]|$)/gu, explanation: 'Forma cortese negativa al passato.' },
   { id: 'polite-kudasai', label: 'Richiesta cortese ください', expression: /ください(?=[ねよ！!。？?]|$)/gu, explanation: 'Richiesta formulata in modo cortese.' },
+  { id: 'final-yorone', label: 'Chiusura 〜よね', expression: /よね(?=[！!。？?]|$)/gu, explanation: 'Combina enfasi informativa e ricerca di accordo.' },
+  { id: 'final-dane', label: 'Chiusura 〜だね', expression: /だね(?=[！!。？?]|$)/gu, explanation: 'Copula informale con possibile ricerca di accordo.' },
+  { id: 'final-kanaa', label: 'Chiusura 〜かなあ', expression: /かなあ(?=[！!。？?]|$)/gu, explanation: 'Chiusura riflessiva con esitazione esplicita.' },
+  { id: 'final-ka', label: 'Particella interrogativa 〜か', expression: /か(?=[！!。？?]|$)/gu, explanation: 'Possibile marcatore interrogativo; la domanda può anche essere indicata dalla punteggiatura.' },
 ];
 
 export function findGrammarPatterns(source: string): GrammarMatch[] {

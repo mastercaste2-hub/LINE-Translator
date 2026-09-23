@@ -97,6 +97,9 @@ export function conjugateVerb(dictionary: string, verbClass: VerbClass): Record<
     nai,
     nakatta: dictionary === 'ある' ? 'なかった' : nai.replace(/ない$/u, 'なかった'),
     volitional: conjugateVolitional(dictionary, verbClass),
+    'te-iru': conjugateTe(dictionary, verbClass) + 'いる',
+    'taku-nai': masu.replace(/ます$/u, 'たくない'),
+    'masen-deshita': dictionary === 'ある' ? 'ありませんでした' : masu.replace(/ます$/u, 'ませんでした'),
   };
   return forms;
 }
@@ -111,6 +114,9 @@ const formLabels: Record<VerbForm, string> = {
   nai: 'ない形 · negazione',
   nakatta: 'なかった形 · negazione al passato',
   volitional: '意向形 · forma volitiva',
+  'te-iru': 'ている形 · progressivo/stato',
+  'taku-nai': 'たくない形 · desiderativo negativo',
+  'masen-deshita': 'ませんでした形 · negazione cortese al passato',
 };
 
 export function findVerbMorphology(surface: string, entries: DictionaryEntry[]): VerbMorphology | undefined {

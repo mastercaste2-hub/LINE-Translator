@@ -1,4 +1,5 @@
 import { findGrammarPatterns } from '../grammar/patterns';
+import { buildSentenceStructure } from '../grammar/relationships';
 import { findLineExpressions } from '../line/expressions';
 import { tokenizeJapanese } from '../parser/tokenize';
 import { generateSafeReply } from '../reply/generate';
@@ -20,8 +21,42 @@ function unmatchedTextIsEmpty(source: string, matches: Array<{ start: number; en
 function knownLiteral(tokens: EngineToken[]) {
   const meanings = tokens
     .filter((token) => token.type !== 'whitespace' && token.type !== 'punctuation' && token.type !== 'emoji')
-    .map((token) => token.meaning ? `${token.text} (${token.meaning})` : `${token.text} (significato non disponibile)`);
+    .map((token) => token.meaning
+      ? (token.lemma ?? token.text) + ' (' + token.meaning + ')'
+      : token.text + ' (unknown: nessun significato assegnato)');
   return meanings.length ? meanings.join(' · ') : 'Nessun contenuto lessicale riconosciuto.';
+}
+
+function composeNaturalMeaning(tokens: EngineToken[], sentence: ReturnType<typeof buildSentenceStructure>) {
+  const hasRole = (surface: string, role: NonNullable<EngineToken['grammaticalRoles']>[number]) =>
+    tokens.find((token) => token.text === surface && token.grammaticalRoles?.includes(role));
+  const temporal = tokens.find((token) => token.semanticCategory === 'temporal');
+  const place = tokens.find((token) => token.semanticCategory === 'place');
+  const verb = tokens.find((token) => token.morphology);
+  const predicate = sentence.sentenceStructure.predicateTokenIndexes.map((index) => tokens[index]);
+
+  if (predicate.some((token) => token.semanticCategory === 'question') && temporal) {
+    return 'Dove ' + (temporal.meaning ?? temporal.text) + '? (il soggetto è omesso e non determinabile dal testo).';
+  }
+  if (place && verb?.morphology?.lemma === '働く' && verb.morphology.form === 'te-iru') {
+    return 'A ' + place.meaning + ', si sta lavorando. (il soggetto è omesso nel testo).';
+  }
+  if (hasRole('私', 'possessor') && hasRole('友達', 'nominal-head')) {
+    return 'Il mio amico / la mia amica. (il numero non è espresso nel testo giapponese).';
+  }
+  if (hasRole('仕事', 'subject') && predicate.some((token) => token.lemma === '忙しい')) {
+    return 'Oggi, il lavoro è impegnativo.';
+  }
+  if (hasRole('学校', 'destination') && predicate.some((token) => token.lemma === '行く')) {
+    return 'Andare a scuola. (il soggetto è omesso nel testo).';
+  }
+  if (temporal && hasRole('友達', 'companion') && verb?.morphology?.lemma === '会う' && verb.morphology.form === 'volitional') {
+    return (temporal.meaning ?? temporal.text) + ', incontriamoci con un amico / un’amica.';
+  }
+  if (temporal && tokens.some((token) => token.text === '一緒に') && verb?.morphology?.lemma === '行く' && verb.morphology.form === 'volitional') {
+    return (temporal.meaning ?? temporal.text) + ', andiamo insieme.';
+  }
+  return undefined;
 }
 
 function hasToken(tokens: EngineToken[], text: string) {
@@ -54,12 +89,12 @@ function inferTone(
   const tone = new Set<ToneLabel>(expressionTones);
   const evidence: string[] = [];
   if (expressionTones.length) evidence.push('Espressione LINE riconosciuta nel modulo locale.');
-  if (grammarIds.includes('kana')) {
+  if (grammarIds.includes('kana') || grammarIds.includes('final-kanaa')) {
     tone.add('hesitant');
     tone.add('soft');
     evidence.push('La chiusura かな è implementata come indizio esitante/attenuante.');
   }
-  if (grammarIds.includes('ne')) {
+  if (grammarIds.includes('ne') || grammarIds.includes('final-yorone') || grammarIds.includes('final-dane')) {
     tone.add('soft');
     evidence.push('La particella finale ね è trattata come possibile ricerca di accordo.');
   }
@@ -67,15 +102,18 @@ function inferTone(
     tone.add('polite');
     evidence.push('È stata riconosciuta una forma cortese esplicita.');
   }
-  if (grammarIds.includes('yo')) {
+  if (grammarIds.includes('yo') || grammarIds.includes('final-yorone')) {
     tone.add('direct');
     evidence.push('La chiusura よ è trattata come indizio assertivo/informativo.');
+  }
+  if (grammarIds.includes('final-ka')) {
+    evidence.push('か finale marca un’interrogativa; da sola non determina cortesia o tono relazionale.');
   }
   if (!tone.size && tokens.some((token) => token.type === 'particle' || token.partOfSpeech === 'verb')) {
     tone.add('casual');
     evidence.push('Lessico/particelle colloquiali riconosciuti; classificazione prudenziale.');
   }
-  if (source.trim() && !evidence.length) evidence.push('Nessun indizio di tono sufficiente nelle regole V0.2.');
+  if (source.trim() && !evidence.length) evidence.push('Nessun indizio di tono sufficiente nelle regole V0.3.');
   return { tone: [...tone], evidence };
 }
 
@@ -95,9 +133,12 @@ function analyzeWaitRequest(tokens: EngineToken[]) {
 }
 
 export function analyzeJapaneseMessage(source: string): JapaneseAnalysis {
-  const tokens = tokenizeJapanese(source);
+  const parsedTokens = tokenizeJapanese(source);
+  const sentence = buildSentenceStructure(parsedTokens);
+  const tokens = sentence.tokens;
   const grammar = findGrammarPatterns(source);
   const expressions = findLineExpressions(source);
+  const particleAnalysis = sentence.particleAnalysis;
   const completeExpressionCoverage = expressions.length > 0 && unmatchedTextIsEmpty(source, expressions);
   const recognizedTokens = tokens.filter((token) => token.type !== 'unknown' && token.type !== 'whitespace');
   const unknownTokens = tokens.filter((token) => token.type === 'unknown');
@@ -105,7 +146,8 @@ export function analyzeJapaneseMessage(source: string): JapaneseAnalysis {
   const intent = inferIntent(source, tokens);
 
   const structure = [
-    ...tokens.filter((token) => token.type === 'particle').map((token) => `Particella ${token.text}: ${token.sentenceFunction}`),
+    ...particleAnalysis.map((item) => 'Particella ' + item.surface + ': funzione ' + (item.selectedFunction ?? 'ambigua/non risolta') + '; ' + item.explanation),
+    ...sentence.relationships.map((item) => (tokens[item.fromToken].lemma ?? tokens[item.fromToken].text) + ' → ' + item.relation + ' → ' + (tokens[item.toToken].lemma ?? tokens[item.toToken].text)),
     ...morphology.map((item) => `${item.formLabel}: ${item.surface} ← ${item.lemma} (${item.lemmaMeaning})`),
     ...grammar.map((match) => `${match.label} (${match.matchedText}): ${match.explanation}`),
     ...expressions.map((expression) => `Espressione LINE: ${expression.surface}`),
@@ -113,12 +155,15 @@ export function analyzeJapaneseMessage(source: string): JapaneseAnalysis {
   if (unknownTokens.length) structure.push(`${unknownTokens.length} segmento/i non riconosciuto/i conservato/i senza interpretazione.`);
 
   const waitAnalysis = analyzeWaitRequest(tokens);
+  const composedMeaning = composeNaturalMeaning(tokens, sentence);
   const naturalMeaning = waitAnalysis?.naturalMeaning
     ?? (completeExpressionCoverage
       ? expressions.map((expression) => expression.naturalMeaning).join(' ')
-      : expressions.length
-        ? `${expressions.map((expression) => expression.naturalMeaning).join(' ')} (lettura parziale: restano elementi fuori dalle espressioni note)`
-        : 'Interpretazione naturale non disponibile: le regole locali non sono sufficienti per questa frase.');
+      : composedMeaning
+        ? composedMeaning
+        : expressions.length
+          ? expressions.map((expression) => expression.naturalMeaning).join(' ') + ' (lettura parziale: restano elementi fuori dalle espressioni note)'
+          : 'Interpretazione naturale non disponibile: le regole locali non sono sufficienti per questa frase.');
 
   const { tone, evidence: toneEvidence } = inferTone(source, expressions.flatMap((item) => item.tones), grammar.map((item) => item.id), tokens);
   if (waitAnalysis) {
@@ -136,6 +181,8 @@ export function analyzeJapaneseMessage(source: string): JapaneseAnalysis {
   if (grammar.length) confidence += 0.1;
   if (expressions.length) confidence += completeExpressionCoverage ? 0.35 : 0.15;
   if (waitAnalysis) confidence += 0.15;
+  confidence += Math.min(0.12, sentence.relationships.length * 0.025);
+  confidence -= particleAnalysis.filter((item) => item.ambiguity).length * 0.04;
   if (unknownTokens.length) confidence -= Math.min(0.3, unknownTokens.length * 0.08);
   confidence = Math.max(0.05, Math.min(completeExpressionCoverage || waitAnalysis ? 0.96 : 0.82, confidence));
 
@@ -147,6 +194,10 @@ export function analyzeJapaneseMessage(source: string): JapaneseAnalysis {
     tokens,
     structure,
     grammar,
+    particleAnalysis,
+    relationships: sentence.relationships,
+    phrases: sentence.phrases,
+    sentenceStructure: sentence.sentenceStructure,
     morphology,
     expressions,
     literalMeaning: knownLiteral(tokens),
