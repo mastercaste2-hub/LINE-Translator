@@ -1,4 +1,5 @@
-import { allLexicalEntries, particleEntries } from '../dictionary/entries';
+import { allLexicalEntries, dictionaryEntries, particleEntries } from '../dictionary/entries';
+import { findVerbMorphology } from '../morphology/verbs';
 import { findGrammarPatterns } from '../grammar/patterns';
 import type { CharacterClass, DictionaryEntry, EngineToken, PartOfSpeech } from '../types';
 
@@ -79,10 +80,10 @@ export function tokenizeJapanese(source: string): EngineToken[] {
 
     const entryMatch = entryAt(source, index, orderedEntries);
     const particleMatch = entryAt(source, index, orderedParticles);
-    // Prefer known lexical items, then particles. Longest matching is applied within each group.
     const match = entryMatch && (!particleMatch || entryMatch.surface.length >= particleMatch.surface.length)
       ? entryMatch
       : particleMatch;
+
     if (match) {
       const isParticle = match.entry.partOfSpeech === 'particle';
       const associatedGrammar = match.grammarRuleId
@@ -109,6 +110,25 @@ export function tokenizeJapanese(source: string): EngineToken[] {
       continue;
     }
 
+    const remaining = source.slice(index);
+    const morphology = findVerbMorphology(remaining.match(/^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]+/u)?.[0] ?? '', dictionaryEntries);
+    if (morphology) {
+      const entry = dictionaryEntries.find((item) => item.surface === morphology.lemma);
+      tokens.push({
+        text: morphology.surface,
+        type: 'morphology',
+        partOfSpeech: 'verb',
+        characterClass: characterClassOf(morphology.surface),
+        meaning: morphology.lemmaMeaning,
+        sentenceFunction: entry?.sentenceFunction ?? 'azione',
+        grammarRule: morphology.formLabel,
+        dictionaryId: entry?.id,
+        morphology,
+      });
+      index += morphology.surface.length;
+      continue;
+    }
+
     const run = unknownRun(source, index);
     const overlappingGrammar = grammar.find((item) => item.start < run.end && item.end > index);
     const pos: PartOfSpeech = 'unknown';
@@ -117,7 +137,7 @@ export function tokenizeJapanese(source: string): EngineToken[] {
       type: 'unknown',
       partOfSpeech: pos,
       characterClass: characterClassOf(run.text),
-      sentenceFunction: 'elemento conservato; non presente nei dati lessicali della V0.1',
+      sentenceFunction: 'elemento conservato; non presente nei dati lessicali della V0.2',
       grammarRule: overlappingGrammar?.label,
     });
     index = run.end;
