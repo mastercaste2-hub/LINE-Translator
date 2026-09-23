@@ -1,4 +1,5 @@
 import type { DictionaryEntry } from '../types';
+import { commonVocabularyEntries } from './common-vocabulary';
 
 export const dictionaryEntries: DictionaryEntry[] = [
   { id: 'today', surface: '今日', partOfSpeech: 'noun', meaning: 'oggi', sentenceFunction: 'riferimento temporale' },
@@ -69,4 +70,4 @@ export const grammarSuffixEntries: DictionaryEntry[] = [
   { id: 'suffix-tara', surface: 'た', partOfSpeech: 'auxiliary', meaning: 'passato', sentenceFunction: 'marca una forma passata', variants: [{ surface: 'た', grammarRuleId: 'past' }] },
 ];
 
-export const allLexicalEntries = [...dictionaryEntries, ...particleEntries, ...grammarSuffixEntries];
+export const allLexicalEntries = [...dictionaryEntries, ...commonVocabularyEntries, ...particleEntries, ...grammarSuffixEntries];
