@@ -1,4 +1,4 @@
-import { allLexicalEntries, dictionaryEntries, particleEntries } from '../dictionary/entries';
+import { allLexicalEntries, particleEntries } from '../dictionary/entries';
 import { findVerbMorphology } from '../morphology/verbs';
 import { findGrammarPatterns } from '../grammar/patterns';
 import type { CharacterClass, DictionaryEntry, EngineToken, PartOfSpeech } from '../types';
@@ -62,7 +62,7 @@ function morphologyAt(source: string, index: number) {
   const max = Math.min(characters.length, 10);
   for (let length = max; length >= 2; length -= 1) {
     const candidate = characters.slice(0, length).join('');
-    const morphology = findVerbMorphology(candidate, dictionaryEntries);
+    const morphology = findVerbMorphology(candidate, allLexicalEntries);
     if (morphology) return morphology;
   }
   return undefined;

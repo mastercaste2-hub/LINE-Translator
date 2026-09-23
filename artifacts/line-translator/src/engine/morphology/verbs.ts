@@ -22,7 +22,7 @@ const godanRuExceptions = new Set(['帰る', '知る', '走る', '入る', '切�
 function inferVerbClass(entry: DictionaryEntry): VerbClass | undefined {
   if (entry.partOfSpeech !== 'verb') return undefined;
   if (entry.verbClass) return entry.verbClass;
-  if (entry.surface === 'する') return 'suru';
+  if (entry.surface === 'する' || entry.surface.endsWith('する')) return 'suru';
   if (entry.surface === '来る') return 'kuru';
   if (godanRuExceptions.has(entry.surface)) return 'godan';
   if (entry.surface.endsWith('る')) {
@@ -32,9 +32,14 @@ function inferVerbClass(entry: DictionaryEntry): VerbClass | undefined {
   return 'godan';
 }
 
+function suruStem(dictionary: string) {
+  return dictionary.endsWith('する') ? dictionary.slice(0, -2) : '';
+}
+
 function conjugateTe(dictionary: string, verbClass: VerbClass): string {
-  if (verbClass === 'suru') return 'して';
+  if (verbClass === 'suru') return suruStem(dictionary) + 'して';
   if (verbClass === 'kuru') return '来て';
+  if (dictionary === 'ある') return 'あって';
   if (verbClass === 'ichidan') return dictionary.slice(0, -1) + 'て';
   if (dictionary === '行く') return '行って';
 
@@ -53,40 +58,44 @@ function conjugateTa(dictionary: string, verbClass: VerbClass): string {
 }
 
 function conjugateMasu(dictionary: string, verbClass: VerbClass): string {
-  if (verbClass === 'suru') return 'します';
+  if (verbClass === 'suru') return suruStem(dictionary) + 'します';
   if (verbClass === 'kuru') return '来ます';
+  if (dictionary === 'ある') return 'あります';
   if (verbClass === 'ichidan') return dictionary.slice(0, -1) + 'ます';
   const ending = dictionary.slice(-1);
   return dictionary.slice(0, -1) + (godanI[ending] ?? ending) + 'ます';
 }
 
 function conjugateNai(dictionary: string, verbClass: VerbClass): string {
-  if (verbClass === 'suru') return 'しない';
+  if (verbClass === 'suru') return suruStem(dictionary) + 'しない';
   if (verbClass === 'kuru') return '来ない';
+  if (dictionary === 'ある') return 'ない';
   if (verbClass === 'ichidan') return dictionary.slice(0, -1) + 'ない';
   const ending = dictionary.slice(-1);
   return dictionary.slice(0, -1) + (godanA[ending] ?? ending) + 'ない';
 }
 
 function conjugateVolitional(dictionary: string, verbClass: VerbClass): string {
-  if (verbClass === 'suru') return 'しよう';
+  if (verbClass === 'suru') return suruStem(dictionary) + 'しよう';
   if (verbClass === 'kuru') return '来よう';
+  if (dictionary === 'ある') return 'あろう';
   if (verbClass === 'ichidan') return dictionary.slice(0, -1) + 'よう';
   const ending = dictionary.slice(-1);
   return dictionary.slice(0, -1) + (godanO[ending] ?? ending) + 'う';
 }
 
 export function conjugateVerb(dictionary: string, verbClass: VerbClass): Record<VerbForm, string> {
-  const te = conjugateTe(dictionary, verbClass);
+  const masu = conjugateMasu(dictionary, verbClass);
+  const nai = conjugateNai(dictionary, verbClass);
   const forms: Record<VerbForm, string> = {
     dictionary,
-    te,
+    te: conjugateTe(dictionary, verbClass),
     ta: conjugateTa(dictionary, verbClass),
-    masu: conjugateMasu(dictionary, verbClass),
-    masen: conjugateMasu(dictionary, verbClass).replace(/ます$/u, 'ません'),
-    mashita: conjugateMasu(dictionary, verbClass).replace(/ます$/u, 'ました'),
-    nai: conjugateNai(dictionary, verbClass),
-    nakatta: conjugateNai(dictionary, verbClass).replace(/ない$/u, 'なかった'),
+    masu,
+    masen: dictionary === 'ある' ? 'ありません' : masu.replace(/ます$/u, 'ません'),
+    mashita: dictionary === 'ある' ? 'ありました' : masu.replace(/ます$/u, 'ました'),
+    nai,
+    nakatta: dictionary === 'ある' ? 'なかった' : nai.replace(/ない$/u, 'なかった'),
     volitional: conjugateVolitional(dictionary, verbClass),
   };
   return forms;
@@ -131,8 +140,9 @@ export function findVerbMorphology(surface: string, entries: DictionaryEntry[]):
 function explainVerbForm(form: VerbForm, dictionary: string, verbClass: VerbClass): string {
   if (form === 'te') {
     if (verbClass === 'ichidan') return `Da ${dictionary}: si elimina る e si aggiunge て.`;
-    if (verbClass === 'suru') return 'する → して: forma irregolare.';
+    if (verbClass === 'suru') return `${dictionary} → ${conjugateTe(dictionary, verbClass)}: verbo in する, forma て.`;
     if (verbClass === 'kuru') return '来る → 来て: forma irregolare.';
+    if (dictionary === 'ある') return 'ある → あって: forma て irregolare del verbo di esistenza.';
     if (dictionary === '行く') return '行く → 行って: eccezione lessicale della forma て.';
     const ending = dictionary.slice(-1);
     if (ending === 'う' || ending === 'つ' || ending === 'る') return `Finale ${ending} → って.`;

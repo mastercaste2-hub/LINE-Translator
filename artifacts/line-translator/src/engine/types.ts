@@ -5,6 +5,7 @@ export type PartOfSpeech =
   | 'adjective'
   | 'verb'
   | 'expression'
+  | 'conjunction'
   | 'particle'
   | 'auxiliary'
   | 'punctuation'

@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from 'react';
 import { Brain, Braces, BookOpen, MessageSquareText, Sparkles } from 'lucide-react';
 import { analyzeJapaneseMessage, generateSafeReply } from '@/engine/interpreter/analyze';
+import { commonVocabularyEntries } from '@/engine/dictionary/common-vocabulary';
 import type { JapaneseAnalysis } from '@/engine/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,7 +47,7 @@ export default function JPLineEngine() {
             🧠 JP LINE Engine
           </h1>
           <p className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Parser, morfologia, grammatica e interpretazione locale. Il motore non inventa
+            Parser, morfologia, grammatica e interpretazione locale. Il vocabolario include un core curato di <strong>{commonVocabularyEntries.length}</strong> voci, senza servizi esterni. Il motore non inventa
             informazioni quando la struttura non è sufficientemente riconosciuta.
           </p>
         </header>
