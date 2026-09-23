@@ -56,6 +56,18 @@ function unknownRun(source: string, index: number) {
   return { text: source.slice(index, end), end };
 }
 
+function morphologyAt(source: string, index: number) {
+  const tail = source.slice(index);
+  const characters = Array.from(tail);
+  const max = Math.min(characters.length, 10);
+  for (let length = max; length >= 2; length -= 1) {
+    const candidate = characters.slice(0, length).join('');
+    const morphology = findVerbMorphology(candidate, dictionaryEntries);
+    if (morphology) return morphology;
+  }
+  return undefined;
+}
+
 export function tokenizeJapanese(source: string): EngineToken[] {
   const tokens: EngineToken[] = [];
   const grammar = findGrammarPatterns(source);
@@ -110,8 +122,7 @@ export function tokenizeJapanese(source: string): EngineToken[] {
       continue;
     }
 
-    const remaining = source.slice(index);
-    const morphology = findVerbMorphology(remaining.match(/^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]+/u)?.[0] ?? '', dictionaryEntries);
+    const morphology = morphologyAt(source, index);
     if (morphology) {
       const entry = dictionaryEntries.find((item) => item.surface === morphology.lemma);
       tokens.push({
