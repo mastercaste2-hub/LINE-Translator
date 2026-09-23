@@ -210,6 +210,10 @@ function Home() {
             <p className="mt-6 max-w-md text-base leading-7 text-muted-foreground sm:text-lg">
               Incolla un messaggio LINE in giapponese. Ti aiutiamo a coglierne il senso, il tono e a rispondere con naturalezza.
             </p>
+            <a href="/jp-line-engine" className="line-focus line-button mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-sm font-medium text-secondary hover:bg-card">
+              <span aria-hidden="true">🧠</span>
+              <span>JP LINE Engine</span>
+            </a>
             <div className="mt-8 hidden items-center gap-3 lg:flex">
               <div className="flex -space-x-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-accent font-mono text-[10px] text-secondary">日</div>
