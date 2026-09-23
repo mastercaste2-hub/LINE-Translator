@@ -103,6 +103,7 @@ export function analyzeJapaneseMessage(source: string): JapaneseAnalysis {
   const unknownTokens = tokens.filter((token) => token.type === 'unknown');
   const morphology = tokens.flatMap((token) => token.morphology ? [token.morphology] : []);
   const intent = inferIntent(source, tokens);
+
   const structure = [
     ...tokens.filter((token) => token.type === 'particle').map((token) => `Particella ${token.text}: ${token.sentenceFunction}`),
     ...morphology.map((item) => `${item.formLabel}: ${item.surface} ← ${item.lemma} (${item.lemmaMeaning})`),
@@ -126,8 +127,8 @@ export function analyzeJapaneseMessage(source: string): JapaneseAnalysis {
   }
 
   const subtext = waitAnalysis?.subtext
-    ?? expressions.map((item) => item.subtext).filter((value): value is string => Boolean(value)).join(' ')
-    || 'Nessun sottotesto dedotto: non è stata riconosciuta una struttura pragmatica sufficiente.';
+    ?? (expressions.map((item) => item.subtext).filter((value): value is string => Boolean(value)).join(' ')
+      || 'Nessun sottotesto dedotto: non è stata riconosciuta una struttura pragmatica sufficiente.');
 
   let confidence = 0.15;
   if (recognizedTokens.length) confidence += Math.min(0.35, recognizedTokens.length * 0.07);
