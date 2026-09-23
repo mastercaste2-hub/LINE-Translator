@@ -1,4 +1,5 @@
-import { allLexicalEntries, particleEntries } from '../dictionary/entries';
+import { allLexicalEntries, dictionaryEntries, particleEntries } from '../dictionary/entries';
+import { findVerbMorphology } from '../morphology/verbs';
 import { findGrammarPatterns } from '../grammar/patterns';
 import type { CharacterClass, DictionaryEntry, EngineToken, PartOfSpeech } from '../types';
 
@@ -55,6 +56,18 @@ function unknownRun(source: string, index: number) {
   return { text: source.slice(index, end), end };
 }
 
+function morphologyAt(source: string, index: number) {
+  const tail = source.slice(index);
+  const characters = Array.from(tail);
+  const max = Math.min(characters.length, 10);
+  for (let length = max; length >= 2; length -= 1) {
+    const candidate = characters.slice(0, length).join('');
+    const morphology = findVerbMorphology(candidate, dictionaryEntries);
+    if (morphology) return morphology;
+  }
+  return undefined;
+}
+
 export function tokenizeJapanese(source: string): EngineToken[] {
   const tokens: EngineToken[] = [];
   const grammar = findGrammarPatterns(source);
@@ -79,10 +92,10 @@ export function tokenizeJapanese(source: string): EngineToken[] {
 
     const entryMatch = entryAt(source, index, orderedEntries);
     const particleMatch = entryAt(source, index, orderedParticles);
-    // Prefer known lexical items, then particles. Longest matching is applied within each group.
     const match = entryMatch && (!particleMatch || entryMatch.surface.length >= particleMatch.surface.length)
       ? entryMatch
       : particleMatch;
+
     if (match) {
       const isParticle = match.entry.partOfSpeech === 'particle';
       const associatedGrammar = match.grammarRuleId
@@ -109,6 +122,24 @@ export function tokenizeJapanese(source: string): EngineToken[] {
       continue;
     }
 
+    const morphology = morphologyAt(source, index);
+    if (morphology) {
+      const entry = dictionaryEntries.find((item) => item.surface === morphology.lemma);
+      tokens.push({
+        text: morphology.surface,
+        type: 'morphology',
+        partOfSpeech: 'verb',
+        characterClass: characterClassOf(morphology.surface),
+        meaning: morphology.lemmaMeaning,
+        sentenceFunction: entry?.sentenceFunction ?? 'azione',
+        grammarRule: morphology.formLabel,
+        dictionaryId: entry?.id,
+        morphology,
+      });
+      index += morphology.surface.length;
+      continue;
+    }
+
     const run = unknownRun(source, index);
     const overlappingGrammar = grammar.find((item) => item.start < run.end && item.end > index);
     const pos: PartOfSpeech = 'unknown';
@@ -117,7 +148,7 @@ export function tokenizeJapanese(source: string): EngineToken[] {
       type: 'unknown',
       partOfSpeech: pos,
       characterClass: characterClassOf(run.text),
-      sentenceFunction: 'elemento conservato; non presente nei dati lessicali della V0.1',
+      sentenceFunction: 'elemento conservato; non presente nei dati lessicali della V0.2',
       grammarRule: overlappingGrammar?.label,
     });
     index = run.end;
